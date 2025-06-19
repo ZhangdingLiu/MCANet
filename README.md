@@ -2,7 +2,7 @@
 This repository contains the implementation of MCANet: A Multi-Scale and Class-Specific Attention Network for Rapid Multi-Label Post-Hurricane Damage Assessment with UAV Images
 
 
-## 📁 Dataset Preparation
+##  Dataset Preparation
 
 1. **Unzip the provided data folder**  
 
@@ -20,7 +20,7 @@ This repository contains the implementation of MCANet: A Multi-Scale and Class-S
 This will create the required .json annotation files in the data/rescuenet/ directory.
  Note: Preprocessed label files have already been included in this repository under the data/ folder.
    
-##🚀 Training & Evaluation
+##  Training & Evaluation
 python main.py --model vit_B16_448 --num_heads 1 --img_size 448 --dataset rescuenet --num_cls 10
 
    
