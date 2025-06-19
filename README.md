@@ -21,6 +21,6 @@ This will create the required .json annotation files in the data/rescuenet/ dire
  Note: Preprocessed label files have already been included in this repository under the data/ folder.
    
 ##  Training & Evaluation
-python main.py --model vit_B16_448 --num_heads 1 --img_size 448 --dataset rescuenet --num_cls 10
+python main.py --model  --num_heads 8 --img_size 448 --dataset rescuenet --num_cls 10
 
    
