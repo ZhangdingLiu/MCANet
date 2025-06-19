@@ -18,7 +18,7 @@ This repository contains the implementation of MCANet: A Multi-Scale and Class-S
    python utils/prepare/prepare_multilabel_rescuenet.py
 
 This will create the required .json annotation files in the data/rescuenet/ directory.
- Note: Preprocessed label files have already been included in this repository under the data/ folder.
+ Note: Preprocessed label files have already been included in this repository under the data/rescuenet/ folder.
    
 ##  Training & Evaluation
 python main.py --model  --num_heads 8 --img_size 448 --dataset rescuenet --num_cls 10
