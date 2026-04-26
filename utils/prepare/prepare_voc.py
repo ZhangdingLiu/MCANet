@@ -43,7 +43,6 @@ def get_label(data_path):
             with open(s_dir, "a") as f:
                 f.writelines("%s,%s\n" % (c, difi_tag[i]))
 
-
 def transdifi(data_path):
     print("generating final json file for VOC07 dataset")
     label_dir = "data/voc07/labels/"      # use previous get_label function  get  .txt
@@ -67,20 +66,15 @@ def transdifi(data_path):
     # +1 means positive
 
     # binary label
-    # 0 means negative #困难样本被设置成0， 可能表示 不参加训练。。
-    # +1 means positive #正常样本  ； 困难：他是把所有标注困难的样本 没有来训练吗！
 
     # we use binary labels in our implementation
-    # 根据难度标记决定目标数组target中对应位置的值：
-    # 若类别存在且难度非全为1，则标记为1（正样本）；若难度全为1，
-    # 则标记为0（困难样本，处理为负样本）。
 
     for item in sorted(os.listdir(label_dir)):
         with open(os.path.join(label_dir, item), "r") as f:
 
-            target = np.array([-1] * 20)  #（代表20个类别的负样本）
-            classes = []  #存储类别ID，
-            diffi_tag = [] #存储难度标记。
+            target = np.array([-1] * 20)  # 20
+            classes = []  # ID
+            diffi_tag = []
 
             for line in f.readlines():
                 cls, tag = map(int, line.strip().split(','))
@@ -89,31 +83,23 @@ def transdifi(data_path):
 
             classes = np.array(classes)
             diffi_tag = np.array(diffi_tag)
-            for i in range(20):  #生成类别目标数组：
+            for i in range(20):
                 if i in classes:
-                    i_index = np.where(classes == i)[0] #获取当前类别i在classes中的所有位置索引
-                    #根据i_index的长度（即类别i出现的次数）和难度标记（diffi_tag）来更新目标数组target：
+                    i_index = np.where(classes == i)[0]  # iclasses
                     if len(i_index) == 1:
                         target[i] = 1 - diffi_tag[i_index]
                     else:
                         if len(i_index) == sum(diffi_tag[i_index]):
                             target[i] = 0
-                            # 由于不是所有实例都是标注难度的样本
-                            # target设置成1， 表示图像里面存在这个 类别的
                         else:
                             target[i] = 1
                 else:
                     continue
             img_path = os.path.join(img_dir, item.split('.')[0]+".jpg")
-            # 对于这张图像，我们得到的target数组将会是长度为20的数组，其中大部分位置是-1（表示没
-            # 有这个类别的信息），而在ID为7, 11, 和 14 的位置分别是0, 1, 和 1，表示该图像的类
-            # 别信息和难度标记。
-            #eg 假设 cat 标注文件里面难度是1， 这里算完 在target【i】就成为 0了
 
-            #分配数据到训练/验证集或测试集：
             if int(item.split('.')[0]) in trainval_id:
                 target[target == -1] = 0  # from ternary to binary by treating difficult as negatives
-                data = {"target": target.tolist(), "img_path": img_path}   #target前面是array ，要变成list
+                data = {"target": target.tolist(), "img_path": img_path}  # targetarray list
                 trainval_data.append(data)
             if int(item.split('.')[0]) in test_id:
                 data = {"target": target.tolist(), "img_path": img_path}      
@@ -124,7 +110,6 @@ def transdifi(data_path):
     print("VOC07 data preparing finished!")
     print("data/voc07/trainval_voc07.json data/voc07/test_voc07.json")
     
-    # remove label directory   ； 删去之前中转的  标注txt文件
     for item in os.listdir(label_dir):
         os.remove(os.path.join(label_dir, item))
     os.rmdir(label_dir)

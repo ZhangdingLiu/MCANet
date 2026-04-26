@@ -46,8 +46,7 @@ def evaluation(matrix,epoch_now,result, types, ann_path,modelname,log_folder_pat
     f1_per_class = np.zeros(num_classes, dtype=np.float64)
 
     ann_json = json.load(open(ann_path, "r")) #Ground Truth; ann_path= 'data/rescuenet/test_rescuenet.json'
-    pred_json = result  # 预测结果; [name, score; name, score;...]  total batch size
-
+    pred_json = result  # ; [name, score; name, score;...]  total batch size
 
     if matrix==True:
         ann_by_name = {
@@ -112,6 +111,4 @@ def evaluation(matrix,epoch_now,result, types, ann_path,modelname,log_folder_pat
     print("OP: {:.2f}, OR: {:.2f}, OF1: {:.2f}".format(OP * 100, OR * 100, OF1 * 100))
 
     return mAP, CP, CR, CF1, OP, OR, OF1
-
-
 

@@ -4,12 +4,9 @@ Hacked together by / Copyright 2020 Ross Wightman
 """
 from itertools import repeat
 # from torch._six import container_abcs   # original
-from collections.abc import Container as container_abcs   #修改code为下面一行
-# from collections.abc import Iterable as container_abcs  错的
+from collections.abc import Container as container_abcs  # code
 
 from collections.abc import Iterable
-
-
 
 # From PyTorch internals
 # def _ntuple(n):
@@ -26,14 +23,9 @@ def _ntuple(n):
         return tuple(repeat(x, n))
     return parse
 
-
 to_1tuple = _ntuple(1)
 to_2tuple = _ntuple(2)
 to_3tuple = _ntuple(3)
 to_4tuple = _ntuple(4)
 to_ntuple = _ntuple
-
-
-
-
 

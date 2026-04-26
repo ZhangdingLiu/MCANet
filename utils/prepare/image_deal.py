@@ -4,19 +4,13 @@
 # from PIL import Image
 # import numpy as np
 #
-# # 示例标注图片的路径
 # image_path = r'D:\Data\hurricane\code\CSRA-master\Dataset\rescuenet\segmentation-testset\test-label-img\10955_lab.png'
 #
-# # 读取标注图片
 # annotation_image = Image.open(image_path)
 # annotation_array = np.array(annotation_image)
 #
-# # 获取存在的类别
 # unique_classes = np.unique(annotation_array)
-# print("存在的种类:", unique_classes)
 #
-# # 为每个类别分配颜色
-# # 这里使用常见的颜色，实际可以根据需要自定义
 # colors = {
 #     0: (255, 255, 255),  # Background - White
 #     1: (0, 0, 255),      # Water - Blue
@@ -31,71 +25,47 @@
 #     10: (0, 255, 255)    # Pool - Cyan
 # }
 #
-# # 生成彩色可视化图像
 # color_image_array = np.zeros((annotation_array.shape[0], annotation_array.shape[1], 3), dtype=np.uint8)
 # for cls in unique_classes:
 #     color_image_array[annotation_array == cls] = colors[cls]
 #
-# # 转换为PIL图像并显示
 # color_image = Image.fromarray(color_image_array)
 # color_image.show()
 #
-# # 返回存在的种类和颜色图像
 # unique_classes, color_image
 #
 #
-# # 假设有一个标注图片路径，调用函数
 # # visualize_annotation('Dataset/rescuenet/segmentation-trainset/train-label-img/10778_lab.png')
 #
-
-
-
 
 #####################################  task 2
 # import os
 #
-# # 假设我们的图片文件夹路径是'/path/to/images'
 # data_path = 'Dataset/rescuenet/'
 # anno_paths1 = os.path.join(data_path, "segmentation-trainset/train-org-img/")
 # anno_paths2 = os.path.join(data_path, "segmentation-validationset/val-org-img/")
 # anno_paths3 = os.path.join(data_path, "segmentation-testset/test-org-img/")
 #
 #
-# # 创建或打开train.txt文件用于写入
 # with open('train.txt', 'w') as f:
-#     # 遍历文件夹中的所有文件
 #     for filename in os.listdir(anno_paths1):
-#         # 检查文件名是否以.jpg结尾
 #         if filename.endswith('.jpg'):
-#             # 去掉.jpg后缀并写入文件
-#             f.write(f"{filename[:-4]}\n")  # filename[:-4]去掉最后四个字符，即'.jpg'
 #
 # print('File names saved to txt')
 #
 #
-# # 创建或打开train.txt文件用于写入
 # with open('val.txt', 'w') as f:
-#     # 遍历文件夹中的所有文件
 #     for filename in os.listdir(anno_paths2):
-#         # 检查文件名是否以.jpg结尾
 #         if filename.endswith('.jpg'):
-#             # 去掉.jpg后缀并写入文件
-#             f.write(f"{filename[:-4]}\n")  # filename[:-4]去掉最后四个字符，即'.jpg'
 #
 # print('File names saved to txt')
 #
 #
-# # 创建或打开train.txt文件用于写入
 # with open('test.txt', 'w') as f:
-#     # 遍历文件夹中的所有文件
 #     for filename in os.listdir(anno_paths3):
-#         # 检查文件名是否以.jpg结尾
 #         if filename.endswith('.jpg'):
-#             # 去掉.jpg后缀并写入文件
-#             f.write(f"{filename[:-4]}\n")  # filename[:-4]去掉最后四个字符，即'.jpg'
 #
 # print('File names saved to txt')
-
 
 #####################################  task 3
 # Find images where "Building_Total_Destruction" (index 4)
@@ -169,8 +139,6 @@
 #     # Output the result
 #     print(f"\nTotal images that meet the criteria: {len(images_with_conditions)}")
 #     print(f"First 50 images copied to: {output_dir}")
-
-
 
 #####################################  task 4
 #   find major damage ;
@@ -255,13 +223,7 @@
 #     print(f"\nTotal images that meet the criteria: {len(images_with_conditions)}")
 #     print(f"First 100 images copied to: {output_dir}")
 
-
-
-
-
-
 #####################################  task 4
-#   find major damage ;   修改排序
 
 import json
 import os
@@ -274,7 +236,7 @@ def find_specific_images(json_file, output_dir):
         data = json.load(f)
 
     # Define class indices and names based on cls_id0
-    labels = {  #索引
+    labels = {
         0: 'Water',
         1: 'Building_No_Damage',
         2: 'Building_Minor_Damage',
@@ -347,19 +309,4 @@ if __name__ == "__main__":
     # Output the result
     print(f"\nTotal images that meet the criteria: {len(images_with_conditions)}")
     print(f"all images copied to: {output_dir}")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

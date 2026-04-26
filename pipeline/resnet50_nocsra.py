@@ -13,10 +13,6 @@ model_urls = {
     'resnet101': 'https://download.pytorch.org/models/resnet101-5d3b4d8f.pth',
     'resnet152': 'https://download.pytorch.org/models/resnet152-b121ed2d.pth',
 }
-# 假设我们有一个标凈的ResNet模型，它包含多个卷积层（作为特征提取器，即backbone），
-# 以及一个全连接层作为分类器（classifier）。在ResNet中，分类器通常是名为fc的单个全连接层。
-# 如果我们遵循标准的ResNet实现，建议用 fc
-
 
 class ResNet50_Multilabel(ResNet):
     arch_settings = {
@@ -33,23 +29,21 @@ class ResNet50_Multilabel(ResNet):
         super(ResNet50_Multilabel, self).__init__(self.block, self.layers)
         self.init_weights(pretrained=True, cutmix=cutmix)
 
-        # 替换最后一层以适应多标签分类
-        self.fc = nn.Linear(input_dim, num_classes)  # ResNet101的特征维度是2048
+        self.fc = nn.Linear(input_dim, num_classes)  # feature dim: 2048
         # self.classifier = input_dim, num_classes)
-        # 直接使用self.resnet.fc，与ResNet的默认实现保持一致，便于集成和扩展。
-        self.loss_func = F.binary_cross_entropy_with_logits  # 二元交叉熵损失
+        self.loss_func = F.binary_cross_entropy_with_logits
 
     def backbone(self, x):
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)
-        x = self.layer1(x)  # Layer1 (conv2_x): 重复 3次，由3个残差块组成。
-        x = self.layer2(x)  # Layer2 (conv3_x): 重复 4次，由4个残差块组成。
+        x = self.layer1(x)
+        x = self.layer2(x)
         x = self.layer3(x)
         x = self.layer4(x)
-        x = self.avgpool(x)    #我增加的    after this, thinking whether should add this part of code to the forward part. because the cam attention is difficult to alter
-        x = x.view(x.size(0), -1)  #将(batch_size, 2048, 1, 1) 转换为 (batch_size, 2048);
+        x = self.avgpool(x)  # after this, thinking whether should add this part of code to the forward part. because the cam attention is difficult to alter
+        x = x.view(x.size(0), -1)  # (batch_size, 2048, 1, 1)  (batch_size, 2048);
         return x    # first dimension is the batch size and the second dimension is the number of features. or maybe this view operation should add to the forward function
 
     def forward_train(self, x, target):
@@ -63,7 +57,7 @@ class ResNet50_Multilabel(ResNet):
         x = self.fc(x)
         return x
 
-    def forward(self, x, target=None):  # 根据是否提供了目标值，决定调用训练还是测试方法。
+    def forward(self, x, target=None):
         if target is not None:
             return self.forward_train(x, target)
         else:
@@ -78,8 +72,6 @@ class ResNet50_Multilabel(ResNet):
             model_url = model_urls["resnet{}".format(self.depth)]
             state_dict = model_zoo.load_url(model_url)
 
-        # 如果预训练权重中的键与当前模型不匹配，则尝试修复键并加载权重。
-        # 原始的全连接层（针对ImageNet 1000类任务）被一个空的序列替换掉了，因为后面会使用不同的分类器。
         model_dict = self.state_dict()
         try:
             pretrained_dict = {k: v for k, v in state_dict.items() if k in model_dict}
@@ -92,12 +84,6 @@ class ResNet50_Multilabel(ResNet):
             self.load_state_dict(state_dict)
         # remove the original 1000-class fc  , this is right
         # self.fc = nn.Sequential()
-
-
-
-
-
-
 
 # this is an example; To modify the final layer to suit a different task, you would typically replace self.fc
 # class CustomResNet(nn.Module):
@@ -112,10 +98,7 @@ class ResNet50_Multilabel(ResNet):
 #         x = self.classifier(x)
 #         return x
 
-
-
 #
-# 另外的写法：：
 #
 # import torch
 # import torch.nn as nn
@@ -126,21 +109,15 @@ class ResNet50_Multilabel(ResNet):
 # class ResNet50_Multilabel(nn.Module):
 #     def __init__(self, num_classes, pretrained=True):
 #         super(ResNet50_Multilabel, self).__init__()
-#         # 加载预训练的ResNet50模型
 #         self.resnet = resnet50(pretrained=pretrained)
-#         # 替换最后的全连接层以适应多标签分类任务
 #         self.resnet.fc = nn.Linear(self.resnet.fc.in_features, num_classes)
-#         # 使用二元交叉熵损失函数
 #         self.loss_func = F.binary_cross_entropy_with_logits
 #
 #     def forward(self, x, target=None):
 #         x = self.resnet(x)
 #
 #         if target is not None:
-#             # 如果提供了目标值，则计算损失
 #             loss = self.loss_func(x, target)
 #             return x, loss
 #         else:
-#             # 否则返回预测结果
-#             x = torch.sigmoid(x)  # 使用sigmoid激活函数
 #             return x

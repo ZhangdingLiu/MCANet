@@ -26,5 +26,4 @@ class MobileNetV2_Multilabel(nn.Module):
             return x, loss
         else:
             # Otherwise, return the prediction
-            # x = torch.sigmoid(x)  # Use sigmoid activation function 多余了
             return x

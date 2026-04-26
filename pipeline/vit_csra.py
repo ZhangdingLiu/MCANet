@@ -344,7 +344,7 @@ def VIT_B16_448_BASE(pretrained=True, num_classes=80):
                 cls_num_cls=num_classes,
                 lam=0.0,          # not used
             )
-            # 替换掉 CSRA 的 classifier
+            # replace the default classifier with CSRA
             self.model.classifier = nn.Sequential(
                 nn.AdaptiveAvgPool2d((1, 1)),
                 nn.Flatten(),

@@ -23,6 +23,10 @@ experiment_results_*.md
 .codex
 .DS_Store
 
+# Backup directories
+utils/evaluation/backups/
+utils/prepare/backup/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
