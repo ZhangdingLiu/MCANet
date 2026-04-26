@@ -15,6 +15,8 @@ from torchvision import transforms
 # Import models
 from pipeline.vit_csra import VIT_B16_448_CSRA, VIT_B16_448_BASE, VIT_B16_224_CSRA, VIT_L16_224_CSRA, VIT_CSRA
 from pipeline.res2net101_csra import Res2Net101_Csra
+from pipeline.resnet101_csra import ResNet101_CSRA
+from pipeline.res2net101_csra_classagnostic import Res2Net101_Csra_CA
 
 def Args():
     """Parse training and model configuration arguments from command line."""
@@ -70,9 +72,10 @@ def train(i, args, model, train_loader, optimizer, warmup_scheduler):
             warmup_scheduler.step()
 
     average_loss = epoch_loss / len(train_loader)
-    print("Epoch {} training complete in {:.2f}s".format(i, time.time() - epoch_begin))
+    epoch_elapsed = time.time() - epoch_begin
+    print("Epoch {} training complete in {:.2f}s".format(i, epoch_elapsed))
     print(f"Average training loss: {average_loss:.4f}")
-    return average_loss
+    return average_loss, epoch_elapsed
 
 def val(i, args, model, test_loader, test_file,modelname,log_folder_path):
     model.eval()
@@ -126,6 +129,17 @@ def plot_metrics(epochs, metrics, labels, title, ylabel, filename, modelname, lo
 def main():
     args = Args()
 
+    # Reproducibility
+    import random
+    import numpy as np
+    SEED = 42
+    torch.manual_seed(SEED)
+    torch.cuda.manual_seed_all(SEED)
+    np.random.seed(SEED)
+    random.seed(SEED)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
     # Build model
     if args.task_type == "multilabel":
         if args.model == "res2net101_csra":
@@ -134,6 +148,27 @@ def main():
             model = VIT_B16_448_CSRA(cls_num_heads=args.num_heads, lam=args.lam, cls_num_cls=args.num_cls)
         elif args.model == "VIT_B16_448_BASE":
             model = VIT_B16_448_BASE(num_classes=args.num_cls)
+        elif args.model == "resnet101_csra":
+            model = ResNet101_CSRA(num_heads=args.num_heads, lam=args.lam, num_classes=args.num_cls)
+        elif args.model == "res2net101_csra_ca":
+            model = Res2Net101_Csra_CA(num_heads=args.num_heads, lam=args.lam, num_classes=args.num_cls)
+        elif args.model == "vgg16_nocsra":
+            from pipeline.vgg16_nocsra import VGG16_Multilabel
+            model = VGG16_Multilabel(num_classes=args.num_cls)
+        elif args.model == "mobilenet_nocsra":
+            from pipeline.mobilenet_nocsra import MobileNetV2_Multilabel
+            model = MobileNetV2_Multilabel(num_classes=args.num_cls)
+        elif args.model == "efficientnet_b4_nocsra":
+            from pipeline.efficientnet_nocsra import efficientnet_b4_nocsra
+            model = efficientnet_b4_nocsra(num_classes=args.num_cls)
+        elif args.model == "resnet101_nocsra":
+            from pipeline.resnet101_nocsra import ResNet101_Multilabel
+            model = ResNet101_Multilabel(num_classes=args.num_cls)
+        elif args.model == "res2net101_nocsra":
+            from pipeline.res2net101_nocsra import Res2Net101_Multilabel
+            model = Res2Net101_Multilabel(num_classes=args.num_cls)
+        else:
+            raise ValueError(f"Unknown model: {args.model}")
 
     model = model.cuda()
     if torch.cuda.device_count() > 1:
@@ -141,12 +176,12 @@ def main():
         model = nn.DataParallel(model)
 
     # Dataset setup
-    train_file = [f"data/{args.dataset}/trainval_{args.dataset}.json"]
-    test_file = [f"data/{args.dataset}/test_{args.dataset}.json"]
+    train_file = [f"data/{args.dataset}/train_{args.dataset}.json"]
+    val_file = [f"data/{args.dataset}/val_{args.dataset}.json"]
     train_dataset = DataSet(train_file, args.train_aug, args.img_size, args.dataset)
-    test_dataset = DataSet(test_file, args.test_aug, args.img_size, args.dataset)
+    val_dataset = DataSet(val_file, args.test_aug, args.img_size, args.dataset)
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=8)
-    test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=8)
+    val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=8)
 
     # Optimizer setup
     backbone, classifier = [], []
@@ -161,8 +196,7 @@ def main():
         {'params': classifier, 'lr': args.lr * 10}
     ], momentum=args.momentum, weight_decay=args.w_d)
 
-    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.5)
-    plateau_scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, min_lr=1e-6)
     warmup_scheduler = WarmUpLR(optimizer, len(train_loader) * args.warmup_epoch) if args.warmup_epoch > 0 else None
 
     # Logging and checkpoint folders
@@ -177,16 +211,20 @@ def main():
     best_mAP = 0.0
 
     for i in range(1, args.total_epoch + 1):
-        train_loss = train(i, args, model, train_loader, optimizer, warmup_scheduler)
-        val_loss, mAP, CP, CR, CF1, OP, OR, OF1 = val(i, args, model, test_loader, test_file, args.model, log_folder_path)
+        train_loss, epoch_elapsed = train(i, args, model, train_loader, optimizer, warmup_scheduler)
+        val_loss, mAP, CP, CR, CF1, OP, OR, OF1 = val(i, args, model, val_loader, val_file, args.model, log_folder_path)
+
+        # Append epoch wall-clock time to the run's log file
+        log_file = os.path.join(log_folder_path, f"{args.model}_{args.dataset}_log.txt")
+        with open(log_file, 'a') as f:
+            f.write(f"Epoch {i} wall-clock: {epoch_elapsed:.1f}s\n")
 
         if mAP > best_mAP:
             best_mAP = mAP
             torch.save(model.state_dict(), os.path.join(checkpoint_folder_path, f"epoch_{i}.pth"))
             print(f"Best model saved with mAP {best_mAP:.4f}")
 
-        scheduler.step()
-        plateau_scheduler.step(val_loss)
+        scheduler.step(val_loss)
 
         train_losses.append(train_loss)
         val_losses.append(val_loss)

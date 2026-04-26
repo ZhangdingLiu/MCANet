@@ -1,3 +1,28 @@
+# Large generated artifacts (data, weights, logs)
+checkpoint/
+logs/
+run_logs/
+Dataset/
+data/
+figures/
+attention_visualize/output/
+attention_visualize/input/
+scripts/
+reports/
+profiling/benchmark_results.csv
+*.pth
+*.tmp
+
+# Internal tooling / experiment docs
+CLAUDE.md
+EXPERIMENT_STATE.md
+experiment_results_*.md
+.claude/
+.aris/
+.idea/
+.codex
+.DS_Store
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

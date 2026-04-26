@@ -50,12 +50,17 @@ def evaluation(matrix,epoch_now,result, types, ann_path,modelname,log_folder_pat
 
 
     if matrix==True:
+        ann_by_name = {
+            os.path.splitext(os.path.basename(r["img_path"]))[0]: r["target"]
+            for r in ann_json
+        }
         predict = []
         target = []
-        num = len(ann_json)
-        for i in range(num):
-            predict.append(pred_json[i]["scores"])
-            target.append(ann_json[i]["target"])
+        for r in pred_json:
+            name = r["file_name"]
+            if name in ann_by_name:
+                predict.append(r["scores"])
+                target.append(ann_by_name[name])
         predict_binary = [[1 if prob >= 0.5 else 0 for prob in image_probs] for image_probs in
                               predict]
 

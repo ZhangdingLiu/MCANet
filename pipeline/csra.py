@@ -96,17 +96,24 @@ class MHA(nn.Module):
         Number of output classes.
     """
 
-    # Predefined temperature configurations for different head counts
+    # Predefined temperature configurations for different head counts.
+    # Pattern: first (N-1) temps from [1,2,3,4,5,6,7] + T=99 (hard attention) as last.
+    # Exception: 4-head uses [1,2,4,99] from the original CSRA paper.
     temp_settings = {
         1: [1],
         2: [1, 99],
-        4: [1, 2, 4, 99],
-        8: [1, 2, 3, 4, 5, 6, 7, 99],
+        3: [1, 2, 99],
+        4: [1, 2, 4, 99],              # original paper schedule
+        5: [1, 2, 3, 4, 99],
+        6: [1, 2, 3, 4, 5, 99],
+        7: [1, 2, 3, 4, 5, 6, 99],
+        8: [1, 2, 3, 4, 5, 6, 7, 99],  # original paper schedule
     }
 
     def __init__(self, num_heads, lam, input_dim, num_classes):
         super(MHA, self).__init__()
-        assert num_heads in self.temp_settings, "num_heads must be one of [1, 2, 4, 8]"
+        assert num_heads in self.temp_settings, \
+            f"num_heads must be one of {list(self.temp_settings.keys())}"
         self.temp_list = self.temp_settings[num_heads]
 
         # Create multiple CSRA heads with different temperatures

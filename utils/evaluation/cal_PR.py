@@ -98,12 +98,11 @@ def metric(scores, targets, types):
         tp_num[index] = np.sum(target * (score >= 0.5))
 
     predict_num[predict_num == 0] = 1  # avoid dividing 0
+    gt_num[gt_num == 0] = 1            # avoid dividing 0
     OP = np.sum(tp_num) / np.sum(predict_num)
     OR = np.sum(tp_num) / np.sum(gt_num)
     OF1 = (2 * OP * OR) / (OP + OR)
 
-    #print(tp_num / predict_num)
-    #print(tp_num / gt_num)
     CP = np.sum(tp_num / predict_num) / num_class
     CR = np.sum(tp_num / gt_num) / num_class
     CF1 = (2 * CP * CR) / (CP + CR)

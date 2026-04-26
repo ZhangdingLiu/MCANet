@@ -99,8 +99,11 @@ def transdifi(data_path):  #Dataset/rescuenet/
     json.dump(train_data, open("data/rescuenet/train_rescuenet.json", "w"))
     json.dump(val_data, open("data/rescuenet/val_rescuenet.json", "w"))
     json.dump(test_data, open("data/rescuenet/test_rescuenet.json", "w"))
+    trainval_data = train_data + val_data
+    json.dump(trainval_data, open("data/rescuenet/trainval_rescuenet.json", "w"))
     print("rescuenet data preparing finished!")
-    print("data/rescuenet/train_rescuenet.json  data/rescuenet/val_rescuenet.json data/rescuenet/test_rescuenet.json")
+    print("data/rescuenet/train_rescuenet.json  data/rescuenet/val_rescuenet.json")
+    print("data/rescuenet/test_rescuenet.json   data/rescuenet/trainval_rescuenet.json")
 
 
 if __name__ == "__main__":
@@ -111,6 +114,6 @@ if __name__ == "__main__":
 
     if not os.path.exists("data/rescuenet"):
         os.makedirs("data/rescuenet")
-    # get_label(args.data_path)
+    get_label(args.data_path)
     transdifi(args.data_path)
 
